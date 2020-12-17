@@ -51,14 +51,15 @@ function getSelection() {
         d3.select("#bbDemographic").text(`bbtype: ${bbDemoData}`);
         d3.select("#wfDemographic").text(`wfreq: ${wfDemoData}`);
 
-        barGraph(testSubject)
+        barBubbleGraph(testSubject)
+        gaugeChart(testSubject)
     });
     
 };
 
 // this creates the graphs of the top 10 numbers by sorting the elements then
 // slicing them.
-function barGraph(testSubjectId){
+function barBubbleGraph(testSubjectId){
     console.log(testSubjectId);
     
     // create an array of the values filtered by the drop-down selection
@@ -68,6 +69,7 @@ function barGraph(testSubjectId){
 
         let forValues = idValues[0]["sample_values"];
         let otuIds = idValues[0]["otu_ids"];
+        let otuLabels = idValues[0]["otu_labels"];
 
         let top10Values = forValues.slice(0, 10).reverse();
         let top10Ids = otuIds.slice(0, 10).reverse().map(element => `OTU ${element}`);
@@ -76,7 +78,7 @@ function barGraph(testSubjectId){
         console.log(top10Values);
         console.log(top10Ids);
 
-                //graph the results
+                // bar graph the results
         d3.json("samples.json").then((data) => {
             var trace1 = [{
                 x: top10Values,
@@ -87,39 +89,75 @@ function barGraph(testSubjectId){
             }];
             Plotly.newPlot("bar", trace1);
         });
-        
+
+        // bubble plot; taken from https://plotly.com/javascript/bubble-charts/
+        var trace1 = {
+            x: otuIds,
+            y: forValues,
+            text: otuLabels,
+            mode: 'markers',
+            marker: {
+              color: otuIds,
+              size: forValues
+            }
+          };
+          
+          var data = [trace1];
+          
+          var layout = {
+            title: 'Marker Size and Color',
+            showlegend: false,
+          };
+          
+          Plotly.newPlot('bubble', data, layout);
 
     });
-    // // pull out the data for the graph
-    // var valuesForGraphBridge = sampleData.samples.filter(m => +m.id === +testSubject);
-    // console.log(sampleData.samples);
-    // console.log(testSubject);
-    // var valuesForGraph = valuesForGraphBridge[0].sample_values;
+};
+
+    function gaugeChart(testSubjectId) {
+        dataset = d3.json("samples.json").then(function (sampleData) {
     
-    // //sort and slice the data
-    // valuesForGraph.sort(function compareFunction(firstNum, secondNum) {
-    //     // resulting order is (1, 2, 3)
-    //     return secondNum - firstNum;
-    //   });
-      
-    // console.log(valuesForGraph);
+            //filter the dataset by the dropdown item
+            var idData = sampleData.metadata.filter(m => m.id === testSubjectId);
+            
+            let gaugeData = idData.map(m => m.wfreq);
+            console.log(gaugeData)
 
-    // //pull out the names for the graph
-    // var otuIds = sampleData.samples.filter(m => +m.id === +testSubject);
-    // var otuIdsForGraph = otuIds[0].otu_ids;
-    // console.log(otuIdsForGraph);
+            var data = [
+                {
+                  domain: { x: [0, 1], y: [0, 1] },
+                  value: gaugeData[0],
+                  title: { text: "Belly Button Washing Frequency" },
+                  type: "indicator",
+                  mode: "gauge+number+delta",
+                  delta: { reference: 10 },
+                  gauge: {
+                    axis: { range: [null, 10] },
+                    steps: [
+                      { range: [0, 1], color: "rgb (31, 9, 180)" },
+                      { range: [1.01, 2], color: "rgb (31, 39, 180)" },
+                      { range: [2.01, 3], color: "rgb (31, 69, 180)" },
+                      { range: [3.01, 4], color: "rgb (31, 99, 180)" },
+                      { range: [4.01, 5], color: "rgb (31, 129, 180)" },
+                      { range: [5.01, 6], color: "rgb (31, 159, 180)" },
+                      { range: [6.01, 7], color: "rgb (31, 189, 180)" },
+                      { range: [7.01, 8], color: "rgb (31, 219, 180)" },
+                      { range: [8.01, 9], color: "rgb (31, 249, 180)" },
+                      { range: [9.01, 10], color: "rgb (31, 279, 180)" }
+                    ],
+                    // threshold: {
+                    //   line: { color: "red", width: 4 },
+                    //   thickness: 0.75,
+                    //   value: 10
+                    // }
+                  }
+                }
+              ];
+              
+              var layout = { width: 600, height: 450, margin: { t: 0, b: 0 } };
+              Plotly.newPlot('gauge', data, layout);
+            
+    });
 
-    // // plot bar graph with data and names
-    // d3.json("samples.json").then((data) => {
-    //     //  Create the Traces
-    //     var trace1 = [{
-    //       x: valuesForGraph,
-    //       y: otuIdsForGraph,
-    //       type: "box",
-    //       name: "Cancer Survival",
-    //       orientation: "h"
-    //     }];
-    //     Plotly.newPlot("#bar", trace1);
-    // });
 };
 
