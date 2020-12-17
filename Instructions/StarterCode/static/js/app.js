@@ -21,6 +21,7 @@ datasetNames = d3.json("samples.json").then(function (response) {
     };
 });
 
+//call getSelection at the beginning on an initial value
 
 d3.selectAll("#selDataset").on("change", getSelection);  
 var testSubject = d3.select("#selDataset").property("value");
@@ -50,18 +51,44 @@ function getSelection() {
         d3.select("#bbDemographic").text(`bbtype: ${bbDemoData}`);
         d3.select("#wfDemographic").text(`wfreq: ${wfDemoData}`);
 
-        
+        barGraph(testSubject)
     });
-    getGraphs()
+    
 };
 
-function getGraphs(){
+// this creates the graphs of the top 10 numbers by sorting the elements then
+// slicing them.
+function barGraph(testSubjectId){
+    console.log(testSubjectId);
+    
+    // create an array of the values filtered by the drop-down selection
     dataset = d3.json("samples.json").then(function (sampleData) {
-        var testSubject = parseInt(d3.select("#selDataset").property("value"));
+        let idValues = sampleData.samples.filter(m => +m.id === testSubjectId);
+        console.log(idValues);
 
-        //filter the dataset by the dropdown item
-        var idData = sampleData.samples.filter(m => +m.id === testSubject);
-    console.log(idData);
+        let forValues = idValues[0]["sample_values"];
+        let otuIds = idValues[0]["otu_ids"];
+
+        let top10Values = forValues.slice(0, 10).reverse();
+        let top10Ids = otuIds.slice(0, 10).reverse().map(element => `OTU ${element}`);
+
+        
+        console.log(top10Values);
+        console.log(top10Ids);
+
+                //graph the results
+        d3.json("samples.json").then((data) => {
+            var trace1 = [{
+                x: top10Values,
+                y: top10Ids,
+                type: "bar",
+                name: "Cancer Survival",
+                orientation: "h"
+            }];
+            Plotly.newPlot("bar", trace1);
+        });
+        
+
     });
     // // pull out the data for the graph
     // var valuesForGraphBridge = sampleData.samples.filter(m => +m.id === +testSubject);
@@ -96,30 +123,3 @@ function getGraphs(){
     // });
 };
 
-
-
-// // sort and slice for the top 10 values
-// var datasetArray = [Object.values(dataset.samples)]
-// console.log(datasetArray)
-
-// var sortTestValues = datasetArray.sort((a,b) => b.samples.values - a.samples.values);
-// var sliceTestValues = sortTestValues.slice([0, 10]);
-
-// //graph the top 10 values
-// d3.json("samples.json").then((data) => {
-//     //  Create the Traces
-//     var trace1 = [{
-//       x: sliceTestValues,
-//       y: data.names,
-//       type: "bar",
-//       name: "Cancer Survival",
-//       orientation: "h"     
-//     }];
-// var layout = {
-//     title: "Top 10 OTUs with sample values",
-//     height: 500,
-//     length: 500
-// }
-
-//     Plotly.newPlot("gauge", trace1);
-// });
