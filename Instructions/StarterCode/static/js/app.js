@@ -9,6 +9,11 @@
 //     console.log(data);
 // });
 
+// Next I developed the template of pulling the data through the 
+// metadata.  This call of data was the foundation for calling all other data.
+// Finally, i used this data to create plots/fill out the table.
+
+
 // Loop through the values in the data to append to the drop down menu
 // I got significant help on this from askbcs and https://stackoverflow.com/questions/684672/how-do-i-loop-through-or-enumerate-a-javascript-object
 
@@ -24,10 +29,10 @@ datasetNames = d3.json("samples.json").then(function (response) {
 //call getSelection at the beginning on an initial value
 
 d3.selectAll("#selDataset").on("change", getSelection);  
-var testSubject = d3.select("#selDataset").property("value");
+// var testSubject = d3.select("#selDataset").property("value");
 
-// get the value in the drop down when there's a change
-
+// function which will take the value of the drop down, then create the 
+// metadata table.  It also calls the functions to create the bar graph, bubble and gauge charts.
 function getSelection() {
     dataset = d3.json("samples.json").then(function (sampleData) {
         var testSubject = parseInt(d3.select("#selDataset").property("value"));
@@ -57,8 +62,7 @@ function getSelection() {
     
 };
 
-// this creates the graphs of the top 10 numbers by sorting the elements then
-// slicing them.
+// function which creates teh bar graph and bubble charts.  bar graph is only the first 10 data points.
 function barBubbleGraph(testSubjectId){
     console.log(testSubjectId);
     
@@ -78,7 +82,7 @@ function barBubbleGraph(testSubjectId){
         console.log(top10Values);
         console.log(top10Ids);
 
-                // bar graph the results
+        // bar graph the results
         d3.json("samples.json").then((data) => {
             var trace1 = [{
                 x: top10Values,
@@ -120,6 +124,7 @@ function barBubbleGraph(testSubjectId){
             //filter the dataset by the dropdown item
             var idData = sampleData.metadata.filter(m => m.id === testSubjectId);
             
+            // create the gauge chart
             let gaugeData = idData.map(m => m.wfreq);
             console.log(gaugeData)
 
@@ -145,11 +150,6 @@ function barBubbleGraph(testSubjectId){
                       { range: [8.01, 9], color: "rgb (31, 249, 180)" },
                       { range: [9.01, 10], color: "rgb (31, 279, 180)" }
                     ],
-                    // threshold: {
-                    //   line: { color: "red", width: 4 },
-                    //   thickness: 0.75,
-                    //   value: 10
-                    // }
                   }
                 }
               ];
